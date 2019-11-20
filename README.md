@@ -1,7 +1,6 @@
 # gatsby-transformer-inline-svg
 
 [![npm](https://img.shields.io/npm/v/gatsby-transformer-inline-svg.svg?label=npm@latest)](https://www.npmjs.com/package/gatsby-transformer-inline-svg)
-[![npm](https://img.shields.io/npm/v/gatsby-transformer-inline-svg/canary.svg)](https://www.npmjs.com/package/gatsby-transformer-inline-svg)
 [![npm](https://img.shields.io/npm/dm/gatsby-transformer-inline-svg.svg)](https://www.npmjs.com/package/gatsby-transformer-inline-svg)
 
 [![Maintainability](https://api.codeclimate.com/v1/badges/fc81fa5e535561c0a6ff/maintainability)](https://codeclimate.com/github/axe312ger/gatsby-transformer-inline-svg/maintainability)
@@ -11,25 +10,25 @@ Read and optimize graqhQL SVG file nodes to render them inline in your website.
 
 If you want to render static SVG files, use https://www.gatsbyjs.org/packages/gatsby-plugin-react-svg/. This plugin is for everybody having a not-fixed set of svgs, eventually from an external data source like Contentful.
 
+## Features
+
+* Read content of your SVG files and provides it for manipulation and rendering in GraphQL
+* Optimizes output via [SVGO](https://github.com/svg/svgo)
+* Provides a compact data URI via [mini-svg-data-uri](https://github.com/tigt/mini-svg-data-uri)
+* Contentful only: Downloads svg and caches it via [createRemoteFileNode](https://github.com/gatsbyjs/gatsby/tree/master/packages/gatsby-source-filesystem#createremotefilenode)
+
 
 ## Todo
 
 This is still in development, missing features:
 
-* support `gatsby-source-filesystem` nodes
-* clean up code
-* actually cache to disk, not to gatsby cache only
-
-## Features
-
-* Read content of your SVG file nodes and stores it as `svgContent` field.
-* Optimizes output via [SVGO](https://github.com/svg/svgo)
-* Contentful only: Download svg and cache it to `node_modules/.cache/gatsby-transformer-inline-svg`
+* Support `gatsby-source-filesystem` nodes
+* The multi-layered cache and queue still tends to handle files twice. This needs to be simplified and fixed
 
 ## Installation
 
 ```sh
-npm i gatsby-transformer-inline-svg@alpha
+npm i gatsby-transformer-inline-svg
 ```
 
 ## Usage
@@ -50,7 +49,13 @@ module.exports = {
 **GraphQL Query**:
 ```graphql
 ... on ContentfulAsset {
-  svgContent
+  svg {
+    content # SVG content optimized with SVGO
+    originalContent # Original SVG content
+    dataURI # Optimized SVG as compact dataURI
+    absolutePath #
+    relativePath #
+  }
   file {
     contentType
     url
@@ -78,11 +83,11 @@ import propTypes from 'prop-types'
 import Img from 'gatsby-image'
 
 // Render inline SVG with fallback non-svg images
-export default function Image({ svgContent, fluid, file, alt }) {
+export default function Image({ svg, fluid, file, alt }) {
   if (file.contentType === 'image/svg+xml') {
-    if (svgContent) {
+    if (svg && svg.content) {
       // Inlined SVGs
-      return <div dangerouslySetInnerHTML={{ __html: svgContent }} />
+      return <div dangerouslySetInnerHTML={{ __html: svg.content }} />
     }
 
     // SVGs that can/should not be inlined
