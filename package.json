@@ -1,6 +1,6 @@
 {
   "name": "gatsby-transformer-inline-svg",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Inline SVGs from any GraphQL source",
   "main": "index.js",
   "engines": {
