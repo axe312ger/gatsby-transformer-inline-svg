@@ -61,7 +61,7 @@ const svgo = new SVGO({
     { removeScriptElement: false },
     { addAttributesToSVGElement: false },
     { removeOffCanvasPaths: true },
-    { reusePaths: true }
+    { reusePaths: false }
   ]
 })
 
