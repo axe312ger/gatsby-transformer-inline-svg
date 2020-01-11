@@ -60,7 +60,6 @@ module.exports = {
     contentType
     url
     fileName
-    contentType
     details {
       image {
         width
