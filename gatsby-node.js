@@ -25,8 +25,17 @@ const svgo = new SVGO({
     { inlineStyles: true },
     { minifyStyles: true },
     { convertStyleToAttrs: true },
-    { cleanupIDs: true },
-    { prefixIds: true },
+    {
+      cleanupIDs: {
+        prefix: {
+          toString() {
+            const prefix = `svg${count}_`
+            count++
+            return prefix
+          }
+        }
+      }
+    },
     { removeRasterImages: true },
     { removeUselessDefs: true },
     { cleanupNumericValues: true },
