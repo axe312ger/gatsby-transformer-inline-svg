@@ -70,7 +70,7 @@ const sessionCache = {}
 
 exports.createSchemaCustomization = ({ actions }) => {
   actions.createTypes(`
-    type InlineSvg implements Node @noInfer {
+    type InlineSvg {
       content: String
       originalContent: String
       dataURI: String
