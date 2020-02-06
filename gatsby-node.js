@@ -115,7 +115,9 @@ async function parseSVG({
       source.contentful_id + ': ' + absolutePath
     )
   }
-  const { data: optimizedSVG } = await svgo.optimize(svg)
+  const { data: optimizedSVG } = await svgo.optimize(svg, {
+    path: absolutePath
+  })
 
   // Create mini data URI
   const dataURI = svgToMiniDataURI(optimizedSVG)
