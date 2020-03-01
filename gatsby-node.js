@@ -197,7 +197,7 @@ exports.createResolvers = ({
               debug('Processed and cached ' + url)
               return result
             } catch (err) {
-              debug.error(err)
+              console.error(err)
               return null
             }
           })
