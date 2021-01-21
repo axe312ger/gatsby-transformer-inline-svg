@@ -100,7 +100,7 @@ async function parseSVG({
   })
 
   // Read local file
-  const svg = await fs.readFile(absolutePath)
+  const svg = await fs.readFile(absolutePath, 'utf8')
 
   if (!svg) {
     throw new Error(
