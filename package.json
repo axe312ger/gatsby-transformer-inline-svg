@@ -69,7 +69,7 @@
     "prettier": "^1.19.1"
   },
   "peerDependencies": {
-    "gatsby-source-contentful": "^2.1.62"
+    "gatsby-source-contentful": "^2.1.62",
     "gatsby": "^2.19.11 || ^3.0.0-next.0"
   }
 }
