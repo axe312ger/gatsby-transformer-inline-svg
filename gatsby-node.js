@@ -1,13 +1,11 @@
 const crypto = require(`crypto`)
+const path = require(`path`)
 const fs = require(`fs-extra`)
-
-const Debug = require('debug')
-const { createRemoteFileNode } = require(`gatsby-source-filesystem`)
+const { fetchRemoteFile } = require(`gatsby-core-utils`)
 const svgToMiniDataURI = require('mini-svg-data-uri')
 const { default: PQueue } = require('p-queue')
 const SVGO = require('svgo')
 
-const debug = new Debug('gatsby-transformer-inline-svg')
 const queue = new PQueue({
   concurrency: 5
 })
@@ -80,23 +78,11 @@ exports.createSchemaCustomization = ({ actions }) => {
   `)
 }
 
-async function parseSVG({
-  source,
-  uri,
-  store,
-  cache,
-  createNode,
-  createNodeId
-}) {
+async function parseSVG({ source, uri, store, cache, reporter }) {
   // Get remote file
-  debug('Downloading ' + source.contentful_id + ': ' + uri)
-  const { absolutePath, relativePath } = await createRemoteFileNode({
+  const absolutePath = await fetchRemoteFile({
     url: uri,
-    parentNodeId: source.id,
-    store,
-    cache,
-    createNode,
-    createNodeId
+    cache
   })
 
   // Read local file
@@ -110,9 +96,8 @@ async function parseSVG({
 
   // Optimize
   if (svg.indexOf('base64') !== -1) {
-    console.log(
-      'SVG contains pixel data. Pixel data was removed to avoid file size bloat.',
-      source.contentful_id + ': ' + absolutePath
+    reporter.info(
+      `SVG contains pixel data. Pixel data was removed to avoid file size bloat.\n${source.contentful_id}:  ${absolutePath}`
     )
   }
   const { data: optimizedSVG } = await svgo.optimize(svg, {
@@ -121,25 +106,18 @@ async function parseSVG({
 
   // Create mini data URI
   const dataURI = svgToMiniDataURI(optimizedSVG)
+  const directory = store.getState().program.directory
 
   return {
     content: optimizedSVG,
     originalContent: svg,
     dataURI,
     absolutePath,
-    relativePath
+    relativePath: path.relative(directory, absolutePath)
   }
 }
 
-exports.createResolvers = ({
-  actions,
-  cache,
-  createNodeId,
-  createResolvers,
-  store,
-  reporter
-}) => {
-  const { createNode } = actions
+exports.createResolvers = ({ cache, createResolvers, store, reporter }) => {
   createResolvers({
     ContentfulAsset: {
       svg: {
@@ -153,8 +131,6 @@ exports.createResolvers = ({
           const {
             file: { url, contentType }
           } = source
-
-          debug({ source, url, contentType })
 
           // Ensure to process only svgs and files with an url
           if (contentType !== 'image/svg+xml' || !url) {
@@ -187,17 +163,15 @@ exports.createResolvers = ({
                 uri,
                 store,
                 cache,
-                createNode,
-                createNodeId
+                reporter
               })
 
               sessionCache[cacheId] = result
               await cache.set(cacheId, result)
 
-              debug('Processed and cached ' + url)
               return result
             } catch (err) {
-              console.error(err)
+              reporter.panic(err)
               return null
             }
           })
