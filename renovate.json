@@ -3,12 +3,12 @@
   "packageRules": [
     {
       "extends": "monorepo:gatsby",
-      "groupName": "gatsby monorepo",
+      "groupName": "GatsbyJS",
       "prPriority": 4
     },
     {
       "matchDepTypes": ["devDependencies"],
-      "automerge": true
+      "groupName": "Development Dependencies",
     }
   ]
 }
