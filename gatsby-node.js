@@ -1,3 +1,4 @@
+// @ts-check
 const crypto = require(`crypto`)
 const path = require(`path`)
 const fs = require(`fs-extra`)
@@ -78,26 +79,14 @@ exports.createSchemaCustomization = ({ actions }) => {
   `)
 }
 
-async function parseSVG({ source, uri, store, cache, reporter }) {
-  // Get remote file
-  const absolutePath = await fetchRemoteFile({
-    url: uri,
-    cache
-  })
-
+async function processSVG({ absolutePath, store, reporter }) {
   // Read local file
   const svg = await fs.readFile(absolutePath, 'utf8')
-
-  if (!svg) {
-    throw new Error(
-      'Unable to read ' + source.contentful_id + ': ' + absolutePath
-    )
-  }
 
   // Optimize
   if (svg.indexOf('base64') !== -1) {
     reporter.info(
-      `SVG contains pixel data. Pixel data was removed to avoid file size bloat.\n${source.contentful_id}:  ${absolutePath}`
+      `${absolutePath}:\nSVG contains pixel data. Pixel data was removed to avoid file size bloat.`
     )
   }
   const { data: optimizedSVG } = await svgo.optimize(svg, {
@@ -117,8 +106,65 @@ async function parseSVG({ source, uri, store, cache, reporter }) {
   }
 }
 
+async function queueSVG({ absolutePath, cache, store, reporter }) {
+  const cacheId =
+    'contentful-svg-content-' +
+    crypto
+      .createHash(`md5`)
+      .update(absolutePath)
+      .digest(`hex`)
+  if (sessionCache[cacheId]) {
+    return sessionCache[cacheId]
+  }
+
+  return queue.add(async () => {
+    try {
+      if (sessionCache[cacheId]) {
+        return sessionCache[cacheId]
+      }
+      const cachedData = await cache.get(cacheId)
+
+      if (cachedData) {
+        return cachedData
+      }
+
+      const processPromise = processSVG({
+        absolutePath,
+        store,
+        reporter
+      })
+
+      sessionCache[cacheId] = processPromise
+
+      const result = await processPromise
+
+      await cache.set(cacheId, result)
+
+      return result
+    } catch (err) {
+      reporter.panic(err)
+      return null
+    }
+  })
+}
+
 exports.createResolvers = ({ cache, createResolvers, store, reporter }) => {
   createResolvers({
+    File: {
+      svg: {
+        type: `InlineSvg`,
+        resolve: async (source) => {
+          const { absolutePath } = source
+
+          // Ensure to process only svgs
+          if (source.internal.mediaType !== 'image/svg+xml') {
+            return null
+          }
+
+          return queueSVG({ absolutePath, store, reporter, cache })
+        }
+      }
+    },
     ContentfulAsset: {
       svg: {
         type: `InlineSvg`,
@@ -137,46 +183,13 @@ exports.createResolvers = ({ cache, createResolvers, store, reporter }) => {
             return null
           }
 
-          const cacheId =
-            'contentful-svg-content-' +
-            crypto
-              .createHash(`md5`)
-              .update(url)
-              .digest(`hex`)
-
-          const result = await queue.add(async () => {
-            const uri = `http:${url}`
-
-            try {
-              if (sessionCache[cacheId]) {
-                return sessionCache[cacheId]
-              }
-
-              const cachedData = await cache.get(cacheId)
-
-              if (cachedData) {
-                return cachedData
-              }
-
-              const result = await parseSVG({
-                source,
-                uri,
-                store,
-                cache,
-                reporter
-              })
-
-              sessionCache[cacheId] = result
-              await cache.set(cacheId, result)
-
-              return result
-            } catch (err) {
-              reporter.panic(err)
-              return null
-            }
+          // Get remote file
+          const absolutePath = await fetchRemoteFile({
+            url: `https:${url}#${source.updatedAt}`,
+            cache
           })
 
-          return result
+          return queueSVG({ absolutePath, store, reporter, cache })
         }
       }
     }
