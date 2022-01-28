@@ -9,6 +9,7 @@
     {
       "matchDepTypes": ["devDependencies"],
       "groupName": "Development Dependencies",
+      "prPriority": 3
     }
   ]
 }
