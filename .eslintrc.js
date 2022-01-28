@@ -7,7 +7,7 @@ module.exports = {
     ecmaVersion: '2017'
   },
   extends: ['standard', 'prettier'],
-  plugins: ['node'],
+  plugins: ['node', 'jest'],
   rules: {
     'node/no-unsupported-features/es-syntax': 2
   }
