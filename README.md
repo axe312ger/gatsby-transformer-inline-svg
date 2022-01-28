@@ -6,13 +6,14 @@
 [![Maintainability](https://api.codeclimate.com/v1/badges/fc81fa5e535561c0a6ff/maintainability)](https://codeclimate.com/github/axe312ger/gatsby-transformer-inline-svg/maintainability)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v1.4%20adopted-ff69b4.svg)](CODE_OF_CONDUCT.md)
 
-Read and optimize Contentful graqhQL SVG file nodes to render them inline in your website.
+Read and optimize (Contentful) SVG file nodes to render them inline in your website.
 
-If you want to render static SVG files, use https://www.gatsbyjs.org/packages/gatsby-plugin-react-svg/. This plugin is for everybody using svgs that are in Contentful.
+If you want to render static SVG files, use https://www.gatsbyjs.org/packages/gatsby-plugin-react-svg/.
 
 ## Features
 
-* Read content of your SVG files from Contentful and provides it for manipulation and rendering in GraphQL
+* Read content of your SVG files from gatsby-source-contentful and gatsby-source-filesystem.
+* Provides original SVG content for further processing
 * Optimizes output via [SVGO](https://github.com/svg/svgo)
 * Provides a compact data URI via [mini-svg-data-uri](https://github.com/tigt/mini-svg-data-uri)
 * Downloads svg and caches it via [createRemoteFileNode](https://github.com/gatsbyjs/gatsby/tree/master/packages/gatsby-source-filesystem#createremotefilenode)
@@ -60,15 +61,20 @@ module.exports = {
     contentType
     url
     fileName
-    details {
-      image {
-        width
-        height
-      }
-    }
   }
-  fluid (...) {
-    ...
+}
+... on File {
+  svg {
+    content # SVG content optimized with SVGO
+    originalContent # Original SVG content
+    dataURI # Optimized SVG as compact dataURI
+    absolutePath #
+    relativePath #
+  }
+  absolutePath
+  name
+  internal {
+    mediaType
   }
 }
 ```
@@ -79,10 +85,10 @@ module.exports = {
 ```jsx
 import React from 'react'
 import propTypes from 'prop-types'
-import Img from 'gatsby-image'
+import GatsbyImage from 'gatsby-plugin-image'
 
 // Render inline SVG with fallback non-svg images
-export default function Image({ svg, fluid, file, alt }) {
+export default function Image({ svg, gatsbyImageData, file, alt }) {
   if (file.contentType === 'image/svg+xml') {
     if (svg && svg.content) {
       // Inlined SVGs
@@ -94,13 +100,6 @@ export default function Image({ svg, fluid, file, alt }) {
   }
 
   // Non SVG images
-  return <Img fluid={fluid} alt={alt} />
-}
-
-Image.propTypes = {
-  svgContent: propTypes.string,
-  fluid: propTypes.object,
-  file: propTypes.object.isRequired,
-  alt: propTypes.string.isRequired,
+  return <GatsbyImage image={gatsbyImageData} alt={alt} />
 }
 ```
