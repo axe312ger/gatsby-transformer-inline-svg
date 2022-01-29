@@ -12,19 +12,11 @@ If you want to render static SVG files, use https://www.gatsbyjs.org/packages/ga
 
 ## Features
 
-* Read content of your SVG files from gatsby-source-contentful and gatsby-source-filesystem.
+* Read content of your SVG files from `gatsby-source-contentful` and `gatsby-source-filesystem`.
 * Provides original SVG content for further processing
 * Optimizes output via [SVGO](https://github.com/svg/svgo)
 * Provides a compact data URI via [mini-svg-data-uri](https://github.com/tigt/mini-svg-data-uri)
 * Downloads svg and caches it via [createRemoteFileNode](https://github.com/gatsbyjs/gatsby/tree/master/packages/gatsby-source-filesystem#createremotefilenode)
-
-
-## Todo
-
-This is still in development, missing features:
-
-* Support `gatsby-source-filesystem` nodes
-* The multi-layered cache and queue still tends to handle files twice. This needs to be simplified and fixed
 
 ## Installation
 
