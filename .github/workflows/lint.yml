@@ -21,4 +21,4 @@ jobs:
 
       # Run prettier 🕵️
       - name: Run prettier
-        run: yarn format --check
+        run: prettier --check {src/**/*.js,*.{js,json}}
