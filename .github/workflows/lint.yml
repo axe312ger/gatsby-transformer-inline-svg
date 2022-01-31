@@ -21,4 +21,4 @@ jobs:
 
       # Run prettier 🕵️
       - name: Run prettier
-        run: prettier --check {src/**/*.js,*.{js,json}}
+        run: npx prettier --check {src/**/*.js,*.{js,json}}
