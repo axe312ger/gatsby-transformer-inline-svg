@@ -34,7 +34,7 @@
   },
   "license": "MIT",
   "lint-staged": {
-    "*.{js}": [
+    "*.js": [
       "prettier --write --config .prettierrc",
       "eslint --fix"
     ],
