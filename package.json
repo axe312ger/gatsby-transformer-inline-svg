@@ -9,7 +9,8 @@
   "scripts": {
     "format": "prettier --write {src/**/*.js,*.{js,json}}",
     "lint": "eslint index.js",
-    "test": "jest gatsby-node.test.js"
+    "test": "jest gatsby-node.test.js",
+    "prepare": "husky install"
   },
   "files": [
     "index.js",
@@ -32,11 +33,6 @@
     "url": "https://github.com/axe312ger/gatsby-transformer-inline-svg.git"
   },
   "license": "MIT",
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
-    }
-  },
   "lint-staged": {
     "*.{js}": [
       "prettier --write --config .prettierrc",
