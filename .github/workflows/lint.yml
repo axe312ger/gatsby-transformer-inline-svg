@@ -33,4 +33,4 @@ jobs:
 
       # Run prettier 🕵️
       - name: Run prettier
-        run: npx prettier --check {*.{js,json}}
+        run: npx prettier --check "*.{js,json}"
