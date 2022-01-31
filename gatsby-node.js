@@ -109,10 +109,7 @@ async function processSVG({ absolutePath, store, reporter }) {
 async function queueSVG({ absolutePath, cache, store, reporter }) {
   const cacheId =
     'contentful-svg-content-' +
-    crypto
-      .createHash(`md5`)
-      .update(absolutePath)
-      .digest(`hex`)
+    crypto.createHash(`md5`).update(absolutePath).digest(`hex`)
   if (sessionCache[cacheId]) {
     return sessionCache[cacheId]
   }
