@@ -61,6 +61,7 @@
     "eslint-plugin-jsx-a11y": "6.5.1",
     "eslint-plugin-react": "7.29.3",
     "eslint-plugin-react-hooks": "4.3.0",
+    "gatsby": "^4.9.3",
     "husky": "7.0.4",
     "jest": "27.5.1",
     "lint-staged": "12.3.5",
@@ -68,7 +69,7 @@
     "prettier": "2.5.1"
   },
   "peerDependencies": {
-    "gatsby": "^4.9.3",
+    "gatsby": ">=4.9.0",
     "gatsby-source-contentful": ">=5.0.0",
     "gatsby-source-filesystem": ">=4.0.0"
   }
