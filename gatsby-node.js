@@ -5,64 +5,35 @@ const fs = require(`fs-extra`)
 const { fetchRemoteFile } = require(`gatsby-core-utils`)
 const svgToMiniDataURI = require('mini-svg-data-uri')
 const { default: PQueue } = require('p-queue')
-const SVGO = require('svgo')
+const { optimize } = require('svgo')
 
 const queue = new PQueue({
   concurrency: 5
 })
-const svgo = new SVGO({
+const defaultSVGOOptions = {
   multipass: true,
   floatPrecision: 2,
   plugins: [
-    { removeDoctype: true },
-    { removeXMLProcInst: true },
-    { removeComments: true },
-    { removeMetadata: true },
-    { removeXMLNS: false },
-    { removeEditorsNSData: true },
-    { cleanupAttrs: true },
-    { inlineStyles: true },
-    { minifyStyles: true },
-    { convertStyleToAttrs: true },
-    { cleanupIDs: true },
-    { prefixIds: true },
-    { removeRasterImages: true },
-    { removeUselessDefs: true },
-    { cleanupNumericValues: true },
-    { cleanupListOfValues: true },
-    { convertColors: true },
-    { removeUnknownsAndDefaults: true },
-    { removeNonInheritableGroupAttrs: true },
-    { removeUselessStrokeAndFill: true },
-    { removeViewBox: false },
-    { cleanupEnableBackground: true },
-    { removeHiddenElems: true },
-    { removeEmptyText: true },
-    { convertShapeToPath: true },
-    { moveElemsAttrsToGroup: true },
-    { moveGroupAttrsToElems: true },
-    { collapseGroups: true },
-    { convertPathData: true },
-    { convertTransform: true },
-    { removeEmptyAttrs: true },
-    { removeEmptyContainers: true },
-    { mergePaths: true },
-    { removeUnusedNS: true },
-    { sortAttrs: true },
-    { removeTitle: true },
-    { removeDesc: true },
-    { removeDimensions: true },
-    { removeAttrs: false },
-    { removeAttributesBySelector: false },
-    { removeElementsByAttr: false },
-    { addClassesToSVGElement: false },
-    { removeStyleElement: false },
-    { removeScriptElement: false },
-    { addAttributesToSVGElement: false },
-    { removeOffCanvasPaths: true },
-    { reusePaths: false }
+    {
+      name: 'preset-default',
+      params: {
+        overrides: {
+          removeViewBox: false
+        }
+      }
+    },
+    'cleanupListOfValues',
+    'prefixIds',
+    'removeDimensions',
+    'removeOffCanvasPaths',
+    'removeRasterImages',
+    'removeScriptElement',
+    'convertStyleToAttrs',
+    'removeStyleElement',
+    'reusePaths',
+    'sortAttrs'
   ]
-})
+}
 
 // do we really need this? :(
 const sessionCache = {}
@@ -89,21 +60,35 @@ async function processSVG({ absolutePath, store, reporter }) {
       `${absolutePath}:\nSVG contains pixel data. Pixel data was removed to avoid file size bloat.`
     )
   }
-  const { data: optimizedSVG } = await svgo.optimize(svg, {
+
+  // @ts-ignore
+  const result = optimize(svg.toString(), {
+    ...defaultSVGOOptions,
     path: absolutePath
   })
 
-  // Create mini data URI
-  const dataURI = svgToMiniDataURI(optimizedSVG)
-  const directory = store.getState().program.directory
+  if ('data' in result) {
+    // Create mini data URI
+    const dataURI = svgToMiniDataURI(result.data)
+    const directory = store.getState().program.directory
 
-  return {
-    content: optimizedSVG,
-    originalContent: svg,
-    dataURI,
-    absolutePath,
-    relativePath: path.relative(directory, absolutePath)
+    return {
+      content: result.data,
+      originalContent: svg,
+      dataURI,
+      absolutePath,
+      relativePath: path.relative(directory, absolutePath)
+    }
   }
+
+  if ('modernError' in result) {
+    console.error(result.error)
+    throw result.modernError
+  }
+
+  throw new Error(
+    `SVGO returned an invalid result:\n${JSON.stringify(result, null, 2)}`
+  )
 }
 
 async function queueSVG({ absolutePath, cache, store, reporter }) {
