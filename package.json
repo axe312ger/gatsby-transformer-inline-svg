@@ -52,6 +52,7 @@
   },
   "devDependencies": {
     "@types/jest": "27.4.1",
+    "@types/svgo": "^2.6.2",
     "eslint": "8.11.0",
     "eslint-config-react-app": "7.0.0",
     "eslint-plugin-flowtype": "8.0.3",
