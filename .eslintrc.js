@@ -1,14 +1,6 @@
 module.exports = {
-  env: {
-    es6: true
+  globals: {
+    __PATH_PREFIX__: true
   },
-  parserOptions: {
-    sourceType: 'module',
-    ecmaVersion: '2017'
-  },
-  extends: ['standard', 'prettier'],
-  plugins: ['node', 'jest'],
-  rules: {
-    'node/no-unsupported-features/es-syntax': 2
-  }
+  extends: `react-app`
 }
