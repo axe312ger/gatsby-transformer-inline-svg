@@ -2459,9 +2459,9 @@
   resolved "https://registry.npmjs.org/@types/stack-utils/-/stack-utils-2.0.1.tgz#20f18294f797f2209b5f65c8e3b5c8e8261d127c"
   integrity sha512-Hl219/BT5fLAaz6NDkSuhzasy49dwQS/DSdu4MdggFB8zcXv7vflBI3xp7FEmkmdDkBUI2bPUNeMttp2knYdxw==
 
-"@types/svgo@^2.6.2":
+"@types/svgo@2.6.2":
   version "2.6.2"
-  resolved "https://registry.npmjs.org/@types/svgo/-/svgo-2.6.2.tgz#97d8be0c50ff0562ed7522ba840149aee1c970e3"
+  resolved "https://registry.yarnpkg.com/@types/svgo/-/svgo-2.6.2.tgz#97d8be0c50ff0562ed7522ba840149aee1c970e3"
   integrity sha512-m1SqMc/EDAZ8v0BBX+NmlYytUXtvrMD2/J9LICwnMvAuJwb0GSmACU3XPvcORqE7ghEJA4Mk6NYzpwhQI/biPw==
   dependencies:
     "@types/node" "*"
@@ -5975,9 +5975,9 @@ gatsby-worker@^1.9.0:
     "@babel/core" "^7.15.5"
     "@babel/runtime" "^7.15.4"
 
-gatsby@^4.9.3:
+gatsby@4.9.3:
   version "4.9.3"
-  resolved "https://registry.npmjs.org/gatsby/-/gatsby-4.9.3.tgz#a69a05a47048b6d140c89cfc05c3cb0e24f8a7aa"
+  resolved "https://registry.yarnpkg.com/gatsby/-/gatsby-4.9.3.tgz#a69a05a47048b6d140c89cfc05c3cb0e24f8a7aa"
   integrity sha512-XZFmdW30vm1+s/kSxFFhMVl33u2qesWPdLEFtrQgtAnFiVjI/ukS/95gVOilhIMYyiTtuhQXiBKygkTl08oKFw==
   dependencies:
     "@babel/code-frame" "^7.14.0"
