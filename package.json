@@ -57,16 +57,16 @@
     "eslint-config-react-app": "7.0.0",
     "eslint-plugin-flowtype": "8.0.3",
     "eslint-plugin-import": "2.25.4",
-    "eslint-plugin-jest": "26.1.1",
+    "eslint-plugin-jest": "26.1.2",
     "eslint-plugin-jsx-a11y": "6.5.1",
-    "eslint-plugin-react": "7.29.3",
+    "eslint-plugin-react": "7.29.4",
     "eslint-plugin-react-hooks": "4.3.0",
-    "gatsby": "4.9.3",
+    "gatsby": "4.10.3",
     "husky": "7.0.4",
     "jest": "27.5.1",
-    "lint-staged": "12.3.5",
+    "lint-staged": "12.3.7",
     "nock": "13.2.4",
-    "prettier": "2.5.1"
+    "prettier": "2.6.0"
   },
   "peerDependencies": {
     "gatsby": ">=4.9.0",
