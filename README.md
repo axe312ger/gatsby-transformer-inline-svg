@@ -12,7 +12,7 @@ If you want to render static SVG files, use https://www.gatsbyjs.org/packages/ga
 
 ## Features
 
-* Read content of your SVG files from `gatsby-source-contentful` and `gatsby-source-filesystem`.
+* Read content of your SVG files from `gatsby-source-contentful`, `gatsby-source-datcms` and `gatsby-source-filesystem`.
 * Provides original SVG content for further processing
 * Optimizes output via [SVGO](https://github.com/svg/svgo)
 * Provides a compact data URI via [mini-svg-data-uri](https://github.com/tigt/mini-svg-data-uri)
@@ -54,6 +54,16 @@ module.exports = {
     url
     fileName
   }
+}
+... on DatoCmsAsset {
+  svg {
+    content # SVG content optimized with SVGO
+    originalContent # Original SVG content
+    dataURI # Optimized SVG as compact dataURI
+    absolutePath #
+    relativePath #
+  }
+  url
 }
 ... on File {
   svg {
