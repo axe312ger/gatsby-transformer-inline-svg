@@ -131,6 +131,35 @@ async function queueSVG({ provider, absolutePath, cache, store, reporter }) {
 }
 
 exports.createResolvers = ({ cache, createResolvers, store, reporter }) => {
+  const datoCmsResolver = async (source) => {
+    // Catch empty DatoCMS assets
+    if (!source.entityPayload) {
+      return null
+    }
+
+    const {
+      entityPayload: {
+        attributes: { url, mime_type }
+      },
+      internal: { contentDigest: cacheKey }
+    } = source
+    const provider = 'dato-cms'
+
+    // Ensure to process only svgs and files with an url
+    if (mime_type !== 'image/svg+xml' || !url) {
+      return null
+    }
+
+    // Get remote file
+    const absolutePath = await fetchRemoteFile({
+      url,
+      cacheKey,
+      cache
+    })
+
+    return queueSVG({ provider, absolutePath, store, reporter, cache })
+  }
+
   createResolvers(
     {
       File: {
@@ -181,34 +210,13 @@ exports.createResolvers = ({ cache, createResolvers, store, reporter }) => {
       DatoCmsAsset: {
         svg: {
           type: `InlineSvg`,
-          resolve: async (source) => {
-            // Catch empty DatoCMS assets
-            if (!source.entityPayload) {
-              return null
-            }
-
-            const {
-              entityPayload: {
-                attributes: { url, mime_type }
-              },
-              internal: { contentDigest: cacheKey }
-            } = source
-            const provider = 'dato-cms'
-
-            // Ensure to process only svgs and files with an url
-            if (mime_type !== 'image/svg+xml' || !url) {
-              return null
-            }
-
-            // Get remote file
-            const absolutePath = await fetchRemoteFile({
-              url,
-              cacheKey,
-              cache
-            })
-
-            return queueSVG({ provider, absolutePath, store, reporter, cache })
-          }
+          resolve: datoCmsResolver
+        }
+      },
+      DatoCmsFileField: {
+        svg: {
+          type: `InlineSvg`,
+          resolve: datoCmsResolver
         }
       }
     },

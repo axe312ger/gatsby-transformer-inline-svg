@@ -69,7 +69,7 @@ describe('general', () => {
       store,
       reporter
     })
-    expect(registeredResolvers.size).toBe(3)
+    expect(registeredResolvers.size).toBe(4)
   })
 
   test('create contentful resolver', async () => {
@@ -96,10 +96,15 @@ describe('general', () => {
     })
 
     expect(registeredResolvers.has('DatoCmsAsset')).toBe(true)
+    expect(registeredResolvers.has('DatoCmsFileField')).toBe(true)
 
-    const resolverData = registeredResolvers.get('DatoCmsAsset')
-    expect(resolverData.svg).toBeTruthy()
-    expect(resolverData.svg.type).toBe('InlineSvg')
+    const assetResolverData = registeredResolvers.get('DatoCmsAsset')
+    expect(assetResolverData.svg).toBeTruthy()
+    expect(assetResolverData.svg.type).toBe('InlineSvg')
+
+    const fileResolverData = registeredResolvers.get('DatoCmsFileField')
+    expect(fileResolverData.svg).toBeTruthy()
+    expect(fileResolverData.svg.type).toBe('InlineSvg')
   })
 
   test('removes pixelated data', async () => {
