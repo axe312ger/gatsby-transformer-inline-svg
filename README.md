@@ -38,6 +38,43 @@ module.exports = {
 }
 ```
 
+to overwrite SVGO options:
+
+See list of configurable [built in plugins](https://github.com/svg/svgo#built-in-plugins). TAKE NOTE: the props name to configure SVGO plugins is called `features`
+
+```js
+module.exports = {
+  plugins: [
+    {
+      resolve: "gatsby-transformer-inline-svg",
+      options: {
+        multipass: true,
+        floatPrecision: 2,
+        features: [
+          {
+            name: 'preset-default',
+            params: {
+              overrides: {
+                removeViewBox: false
+              }
+            }
+          },
+          'cleanupListOfValues',
+          'prefixIds',
+          'removeDimensions',
+          'removeOffCanvasPaths',
+          'removeRasterImages',
+          'removeScriptElement',
+          'convertStyleToAttrs',
+          'reusePaths',
+          'sortAttrs'
+        ],
+      },
+    }
+  ]
+}
+```
+
 
 **GraphQL Query**:
 ```graphql

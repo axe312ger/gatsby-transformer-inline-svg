@@ -38,6 +38,84 @@ const defaultSVGOOptions = {
 // do we really need this? :(
 const sessionCache = {}
 
+exports.pluginOptionsSchema = ({ Joi }) => {
+  return Joi.object({
+    multipass: Joi.boolean()
+      .default(true)
+      .description(
+        `Pass over SVGs multiple times to ensure all optimizations are applied. boolean. true by default`
+      ),
+    floatPrecision: Joi.number()
+      .default(2)
+      .description(
+        `Set number of digits in the fractional part, overrides plugins params`
+      ),
+    // plugins is a reserved props
+    features: Joi.array()
+      .items(
+        Joi.string().valid(
+          'cleanupAttrs',
+          'mergeStyles',
+          'inlineStyles',
+          'removeDoctype',
+          'removeXMLProcInst',
+          'removeComments',
+          'removeMetadata',
+          'removeTitle',
+          'removeDesc',
+          'removeUselessDefs',
+          'removeXMLNS',
+          'removeEditorsNSData',
+          'removeEmptyAttrs',
+          'removeHiddenElems',
+          'removeEmptyText',
+          'removeEmptyContainers',
+          'removeViewBox',
+          'cleanupEnableBackground',
+          'minifyStyles',
+          'convertStyleToAttrs',
+          'convertColors',
+          'convertPathData',
+          'convertTransform',
+          'removeUnknownsAndDefaults',
+          'removeNonInheritableGroupAttrs',
+          'removeUselessStrokeAndFill',
+          'removeUnusedNS',
+          'prefixIds',
+          'cleanupIds',
+          'cleanupNumericValues',
+          'cleanupListOfValues',
+          'moveElemsAttrsToGroup',
+          'moveGroupAttrsToElems',
+          'collapseGroups',
+          'removeRasterImages',
+          'mergePaths',
+          'convertShapeToPath',
+          'convertEllipseToCircle',
+          'sortAttrs',
+          'sortDefsChildren',
+          'removeDimensions',
+          'removeAttrs',
+          'removeAttributesBySelector',
+          'removeElementsByAttr',
+          'addClassesToSVGElement',
+          'addAttributesToSVGElement',
+          'removeOffCanvasPaths',
+          'removeStyleElement',
+          'removeScriptElement',
+          'reusePaths'
+        ),
+        Joi.object({
+          name: Joi.string().description(`name of plugins`),
+          params: Joi.object().description(`additional plugins params options`)
+        })
+      )
+      .min(0)
+      .default(defaultSVGOOptions.plugins)
+      .description(`Set SVGO features/plugins`)
+  })
+}
+
 exports.createSchemaCustomization = ({ actions }) => {
   actions.createTypes(`
     type InlineSvg {
@@ -50,7 +128,7 @@ exports.createSchemaCustomization = ({ actions }) => {
   `)
 }
 
-async function processSVG({ absolutePath, store, reporter }) {
+async function processSVG({ absolutePath, store, reporter, svgomgOpts }) {
   // Read local file
   const svg = await fs.readFile(absolutePath, 'utf8')
 
@@ -61,9 +139,19 @@ async function processSVG({ absolutePath, store, reporter }) {
     )
   }
 
+  const { multipass, floatPrecision, features: plugins } = svgomgOpts || {}
+
+  const svgopts = svgomgOpts
+    ? {
+        multipass,
+        floatPrecision,
+        plugins
+      }
+    : defaultSVGOOptions
+
   // @ts-ignore
   const result = optimize(svg.toString(), {
-    ...defaultSVGOOptions,
+    ...svgopts,
     path: absolutePath
   })
 
@@ -91,7 +179,7 @@ async function processSVG({ absolutePath, store, reporter }) {
   )
 }
 
-async function queueSVG({ absolutePath, cache, store, reporter }) {
+async function queueSVG({ absolutePath, cache, store, reporter, svgomgOpts }) {
   const cacheId =
     'contentful-svg-content-' +
     crypto.createHash(`md5`).update(absolutePath).digest(`hex`)
@@ -113,7 +201,8 @@ async function queueSVG({ absolutePath, cache, store, reporter }) {
       const processPromise = processSVG({
         absolutePath,
         store,
-        reporter
+        reporter,
+        svgomgOpts
       })
 
       sessionCache[cacheId] = processPromise
@@ -130,7 +219,10 @@ async function queueSVG({ absolutePath, cache, store, reporter }) {
   })
 }
 
-exports.createResolvers = ({ cache, createResolvers, store, reporter }) => {
+exports.createResolvers = (
+  { cache, createResolvers, store, reporter },
+  svgomgOpts
+) => {
   createResolvers({
     File: {
       svg: {
@@ -143,7 +235,7 @@ exports.createResolvers = ({ cache, createResolvers, store, reporter }) => {
             return null
           }
 
-          return queueSVG({ absolutePath, store, reporter, cache })
+          return queueSVG({ absolutePath, store, reporter, cache, svgomgOpts })
         }
       }
     },
@@ -171,7 +263,7 @@ exports.createResolvers = ({ cache, createResolvers, store, reporter }) => {
             cache
           })
 
-          return queueSVG({ absolutePath, store, reporter, cache })
+          return queueSVG({ absolutePath, store, reporter, cache, svgomgOpts })
         }
       }
     }

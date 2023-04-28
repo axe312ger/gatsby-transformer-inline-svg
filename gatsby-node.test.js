@@ -1,7 +1,8 @@
 const nock = require('nock')
 const fs = require('fs-extra')
 
-const { createResolvers } = require('./gatsby-node')
+const { createResolvers, pluginOptionsSchema } = require('./gatsby-node')
+const { testPluginOptionsSchema } = require('gatsby-plugin-utils')
 
 const registeredResolvers = new Map()
 const actualCacheMap = new Map()
@@ -81,6 +82,56 @@ describe('general', () => {
 
     expect(reporter.panic).not.toBeCalled()
     expect(result.content).not.toContain('data:image/png')
+  })
+})
+
+describe(`pluginOptionsSchema`, () => {
+  it(`should invalidate incorrect options`, async () => {
+    const options = {
+      multipass: undefined, // Should be a boolean
+      floatPrecision: '1112', // Should be a number
+      features: `not a boolean` // Should be an array
+    }
+
+    const { isValid } = await testPluginOptionsSchema(
+      pluginOptionsSchema,
+      options
+    )
+
+    expect(isValid).toBe(false)
+  })
+
+  it(`should validate correct options`, async () => {
+    const options = {
+      multipass: true,
+      floatPrecision: 2,
+      features: [
+        {
+          name: 'preset-default',
+          params: {
+            overrides: {
+              removeViewBox: false
+            }
+          }
+        },
+        'cleanupListOfValues',
+        'prefixIds',
+        'removeDimensions',
+        'removeOffCanvasPaths',
+        'removeRasterImages',
+        'removeScriptElement',
+        'convertStyleToAttrs',
+        'reusePaths',
+        'sortAttrs'
+      ]
+    }
+    const { isValid, errors } = await testPluginOptionsSchema(
+      pluginOptionsSchema,
+      options
+    )
+
+    expect(isValid).toBe(true)
+    expect(errors).toEqual([])
   })
 })
 
