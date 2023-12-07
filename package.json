@@ -47,7 +47,7 @@
     "fs-extra": "^11.0.0",
     "gatsby-core-utils": "^3.9.1",
     "mini-svg-data-uri": "^1.4.4",
-    "p-queue": "^6.2.1",
+    "p-queue": "^8.0.0",
     "svgo": "^2.0.0"
   },
   "devDependencies": {
