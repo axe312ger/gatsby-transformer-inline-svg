@@ -91,9 +91,9 @@ async function processSVG({ absolutePath, store, reporter }) {
   )
 }
 
-async function queueSVG({ absolutePath, cache, store, reporter }) {
+async function queueSVG({ provider, absolutePath, cache, store, reporter }) {
   const cacheId =
-    'contentful-svg-content-' +
+    `${provider}-svg-content-` +
     crypto.createHash(`md5`).update(absolutePath).digest(`hex`)
   if (sessionCache[cacheId]) {
     return sessionCache[cacheId]
@@ -131,49 +131,98 @@ async function queueSVG({ absolutePath, cache, store, reporter }) {
 }
 
 exports.createResolvers = ({ cache, createResolvers, store, reporter }) => {
-  createResolvers({
-    File: {
-      svg: {
-        type: `InlineSvg`,
-        resolve: async (source) => {
-          const { absolutePath } = source
+  const datoCmsResolver = async (source) => {
+    // Catch empty DatoCMS assets
+    if (!source.entityPayload) {
+      return null
+    }
 
-          // Ensure to process only svgs
-          if (source.internal.mediaType !== 'image/svg+xml') {
-            return null
+    const {
+      entityPayload: {
+        attributes: { url, mime_type }
+      },
+      internal: { contentDigest: cacheKey }
+    } = source
+    const provider = 'dato-cms'
+
+    // Ensure to process only svgs and files with an url
+    if (mime_type !== 'image/svg+xml' || !url) {
+      return null
+    }
+
+    // Get remote file
+    const absolutePath = await fetchRemoteFile({
+      url,
+      cacheKey,
+      cache
+    })
+
+    return queueSVG({ provider, absolutePath, store, reporter, cache })
+  }
+
+  createResolvers(
+    {
+      File: {
+        svg: {
+          type: `InlineSvg`,
+          resolve: async (source) => {
+            const { absolutePath } = source
+            const provider = 'file'
+
+            // Ensure to process only svgs
+            if (source.internal.mediaType !== 'image/svg+xml') {
+              return null
+            }
+
+            return queueSVG({ provider, absolutePath, store, reporter, cache })
           }
+        }
+      },
+      ContentfulAsset: {
+        svg: {
+          type: `InlineSvg`,
+          resolve: async (source) => {
+            // Catch empty Contentful assets
+            if (!source.file) {
+              return null
+            }
 
-          return queueSVG({ absolutePath, store, reporter, cache })
+            const {
+              file: { url, contentType }
+            } = source
+            const provider = 'contentful'
+
+            // Ensure to process only svgs and files with an url
+            if (contentType !== 'image/svg+xml' || !url) {
+              return null
+            }
+
+            // Get remote file
+            const absolutePath = await fetchRemoteFile({
+              url: `https:${url}#${source.updatedAt}`,
+              cache
+            })
+
+            return queueSVG({ provider, absolutePath, store, reporter, cache })
+          }
+        }
+      },
+      DatoCmsAsset: {
+        svg: {
+          type: `InlineSvg`,
+          resolve: datoCmsResolver
+        }
+      },
+      DatoCmsFileField: {
+        svg: {
+          type: `InlineSvg`,
+          resolve: datoCmsResolver
         }
       }
     },
-    ContentfulAsset: {
-      svg: {
-        type: `InlineSvg`,
-        resolve: async (source) => {
-          // Catch empty Contentful assets
-          if (!source.file) {
-            return null
-          }
-
-          const {
-            file: { url, contentType }
-          } = source
-
-          // Ensure to process only svgs and files with an url
-          if (contentType !== 'image/svg+xml' || !url) {
-            return null
-          }
-
-          // Get remote file
-          const absolutePath = await fetchRemoteFile({
-            url: `https:${url}#${source.updatedAt}`,
-            cache
-          })
-
-          return queueSVG({ absolutePath, store, reporter, cache })
-        }
-      }
+    {
+      // Surpress warnings for missing content sources
+      ignoreNonexistentTypes: true
     }
-  })
+  )
 }
